@@ -11,6 +11,12 @@ Syncthing 很好用,但两件日常小事一直很烦:
 1. **看状态要开浏览器。** 同步卡没卡、对方设备在不在线、还差多少没传完,都得开 127.0.0.1:8384 的 web UI。
 2. **冲突文件没人管。** 多设备同时改一个文件,Syncthing 会默默生成 `report.sync-conflict-20261125-193000-WKFLOR2.txt` ——不通知、堆着,想收拾又没有趁手工具:哪个是我的?哪边是对的?要不要留?
 
+已有的 Syncthing 终端工具——Go 写的 [syncthingtui](https://github.com/Evidlo/syncthingtui)、[stc](https://github.com/tenox7/stc),Rust 写的 [stui](https://github.com/corcoran/stui)——以状态监控/配置为主,需要下载对应平台的二进制。lazythin 的差异点:
+
+- **pip 即装、零第三方依赖**(纯 Python 标准库,Windows/Linux/macOS 通吃)
+- **把冲突文件做成完整工作流**:扫描 → unified diff → 安全解决(默认干跑 + 败方转存 `.lazythin-bak`)
+- 中文界面与修复提示
+
 ## 快速开始
 
 ```console
