@@ -117,7 +117,7 @@ def resolve(c: Conflict, mode: str, backup: bool = True) -> list[str]:
         if backup and c.original.exists():
             c.original.rename(c.original.with_name(c.original.name + ".lazythin-bak"))
             acts.append(f"改名 {c.original.name} -> {c.original.name}.lazythin-bak")
-        c.path.rename(c.original)
+        c.path.replace(c.original)  # replace:目标已存在时覆盖(Windows 下 rename 会抛错)
         acts.append(f"{c.original.name} 的内容替换为冲突副本")
     else:
         target = renamed_both(c)

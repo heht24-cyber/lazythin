@@ -89,6 +89,14 @@ class TestResolve(Base):
         self.assertTrue((self.td / "file.txt.lazythin-bak").exists())
         self.assertFalse(c.path.exists())
 
+    def test_keep_conflict_no_backup_replaces_existing(self):
+        # 回归:Windows 下 rename 到已存在目标会抛 FileExistsError,必须用 replace
+        c = self._conflict()
+        resolve(c, "keep-conflict", backup=False)
+        self.assertEqual((self.td / "file.txt").read_text(encoding="utf-8"), "新内容")
+        self.assertFalse(c.path.exists())
+        self.assertFalse((self.td / "file.txt.lazythin-bak").exists())
+
     def test_keep_both(self):
         c = self._conflict()
         resolve(c, "keep-both", backup=True)

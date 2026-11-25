@@ -102,7 +102,7 @@ $ lazythin --once             # 渲染一帧退出(监控/CI/截图)
 $ python -m unittest discover -s tests -v
 ```
 
-37 个单元测试;REST 数据形状的测试夹具取自真实 Syncthing v2.1.7 的响应,不打真实网络。
+40 个单元测试;REST 数据形状的测试夹具取自真实 Syncthing v2.1.7 的响应,不打真实网络。
 
 ## License
 

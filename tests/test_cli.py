@@ -6,6 +6,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -58,6 +59,22 @@ class TestCli(unittest.TestCase):
         self.assertIn("需 21.7 KiB", text)
         self.assertIn("错误 4", text)
         self.assertIn("离线", text)
+
+    def test_color_render_has_ansi(self):
+        # 回归:转义层级曾吃掉反斜杠,颜色路径必须真的产出 ANSI 序列
+        snap = build_snapshot(FakeClient())
+        text = render_dashboard(snap, None, use_color=True, spin="|")
+        self.assertIn("\x1b[", text)
+        self.assertIn("\x1b[0m", text)
+
+    def test_tui_requires_tty(self):
+        args = build_parser().parse_args([])
+        buf, err = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stdout(buf), contextlib.redirect_stderr(err):
+            with mock.patch("sys.stdin", io.StringIO()):
+                code = _tui(args, FakeClient())
+        self.assertEqual(code, 2)
+        self.assertIn("交互终端", err.getvalue())
 
 
 class TestConflictsCli(unittest.TestCase):

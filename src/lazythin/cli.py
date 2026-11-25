@@ -80,11 +80,14 @@ def _cmd_tui(args, client=None) -> int:
     if args.once:
         try:
             snap = build_snapshot(client)
-        except (ApiError, Exception) as exc:
+        except Exception as exc:
             sys.stderr.write(f"获取状态失败:{exc}\n")
             return 2
         print(render_dashboard(snap, None, _use_color(args)))
         return 0
+    if not sys.stdin.isatty():
+        sys.stderr.write("TUI 需要交互终端;脚本/管道场景请用 --once 或 status --json\n")
+        return 2
     return run_tui(client, interval=args.interval, use_color=_use_color(args))
 
 
