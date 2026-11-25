@@ -4,6 +4,7 @@ Syncthing 的冲突副本命名形如:
     file.sync-conflict-20260101-101010-ABC1234.txt   (原文件 file.txt)
 也兼容把标记放在最后的旧风格:
     file.txt.sync-conflict-20260101-101010-ABC1234
+(官方实现见 Syncthing 源码 lib/model/folder_sendrecv.go 的 conflictName())
 
 解决策略(默认全部先出计划,--yes 才执行):
     keep-orig      保留原文件,冲突副本改名 .lazythin-bak(或删除)

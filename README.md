@@ -11,6 +11,8 @@ Syncthing 很好用,但两件日常小事一直很烦:
 1. **看状态要开浏览器。** 同步卡没卡、对方设备在不在线、还差多少没传完,都得开 127.0.0.1:8384 的 web UI。
 2. **冲突文件没人管。** 多设备同时改一个文件,Syncthing 会默默生成 `report.sync-conflict-20261125-193000-WKFLOR2.txt` ——不通知、堆着,想收拾又没有趁手工具:哪个是我的?哪边是对的?要不要留?
 
+这不是小众烦恼:Syncthing 官方仓库里仅标题含 sync-conflict 的 issue 就有 29 个,高热度的如 [#2584](https://github.com/syncthing/syncthing/issues/2584)(53 条评论)、[#2282](https://github.com/syncthing/syncthing/issues/2282)、[#8604](https://github.com/syncthing/syncthing/issues/8604)。
+
 已有的 Syncthing 终端工具——Go 写的 [syncthingtui](https://github.com/Evidlo/syncthingtui)、[stc](https://github.com/tenox7/stc),Rust 写的 [stui](https://github.com/corcoran/stui)——以状态监控/配置为主,需要下载对应平台的二进制。lazythin 的差异点:
 
 - **pip 即装、零第三方依赖**(纯 Python 标准库,Windows/Linux/macOS 通吃)
@@ -75,6 +77,8 @@ $ lazythin conflicts --resolve keep-conflict --yes
 
 安全设计:**默认只打印计划,加 `--yes` 才执行;败方文件默认转存 `.lazythin-bak` 而不是删除**(`--no-backup` 才真删)。二进制文件自动跳过逐行 diff。
 
+冲突副本命名已对照官方源码核实(`lib/model/folder_sendrecv.go` 的 `conflictName()`):`去扩展名的原名 + .sync-conflict-YYYYMMDD-HHMMSS-<设备ID> + 扩展名`;lazythin 同时兼容把标记放结尾的旧风格。
+
 ## 脚本集成
 
 ```console
@@ -86,7 +90,7 @@ $ lazythin --once             # 渲染一帧退出(监控/CI/截图)
 
 ## 兼容性与实现
 
-- 实测 **Syncthing v2.1.7**(REST 端点形状按真实行为适配,如 v2 的 `deviceID` 字段);v1 的 `id` 字段做了兼容回退。
+- 实测 **Syncthing v2.1.7**(当前最新 release);所用 5 个 REST 端点均在官方文档中且无弃用标记;v2 的 `deviceID` 字段与 v1 的 `id` 字段均兼容。
 - 只调用**只读** REST 端点(`/rest/system/status`、`/rest/config`、`/rest/db/status`、`/rest/system/connections` 等),不改任何同步配置。
 - config.xml 自动查找:Windows `%LOCALAPPDATA%\Syncthing`、Linux `~/.config/syncthing` / `~/.local/state/syncthing`、macOS `~/Library/Application Support/Syncthing`,也可 `--config` 指定。API key 只在本机使用。
 - TLS GUI(https 自签名)自动处理。
