@@ -7,7 +7,7 @@ name = "lazythin"
 version = "0.1.0"
 description = "Terminal manager for Syncthing: live TUI dashboard plus one-command conflict-file resolution. Zero dependencies."
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = { text = "MIT" }
 authors = [{ name = "hht233" }]
 keywords = ["syncthing", "tui", "terminal", "dashboard", "conflict", "sync", "cli"]
