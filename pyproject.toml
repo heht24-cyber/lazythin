@@ -9,7 +9,7 @@ description = "Terminal manager for Syncthing: live TUI dashboard plus one-comma
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }
-authors = [{ name = "lazythin contributors" }]
+authors = [{ name = "hht233" }]
 keywords = ["syncthing", "tui", "terminal", "dashboard", "conflict", "sync", "cli"]
 classifiers = [
     "Development Status :: 4 - Beta",
