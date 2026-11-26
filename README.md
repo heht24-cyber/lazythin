@@ -15,14 +15,16 @@ Syncthing 很好用,但两件日常小事一直很烦:
 
 已有的 Syncthing 终端工具——Go 写的 [syncthingtui](https://github.com/Evidlo/syncthingtui)、[stc](https://github.com/tenox7/stc),Rust 写的 [stui](https://github.com/corcoran/stui)——以状态监控/配置为主,需要下载对应平台的二进制。lazythin 的差异点:
 
-- **pip 即装、零第三方依赖**(纯 Python 标准库,Windows/Linux/macOS 通吃)
+- **纯 Python 零依赖**:克隆后 `pip install -e .` 即用,任意平台,无需下载或编译平台二进制
 - **把冲突文件做成完整工作流**:扫描 → unified diff → 安全解决(默认干跑 + 败方转存 `.lazythin-bak`)
 - 中文界面与修复提示
 
 ## 快速开始
 
 ```console
-$ pip install lazythin        # 或从源码: pip install -e .
+$ git clone https://github.com/heht24-cyber/lazythin
+$ cd lazythin
+$ pip install -e .
 $ lazythin
 ```
 
