@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -27,11 +28,13 @@ def build_parser() -> argparse.ArgumentParser:
                "  lazythin conflicts --resolve keep-orig --yes",
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
-    p.add_argument("--config", help="Syncthing config.xml 路径(默认自动查找)")
-    p.add_argument("--no-color", action="store_true", help="禁用颜色")
-    p.add_argument("--once", action="store_true", help="渲染一帧后退出(不进 TUI)")
-    p.add_argument("--interval", type=float, default=2.0, help="TUI 刷新间隔秒,默认 2")
-    p.add_argument("--timeout", type=float, default=5.0, help="API 超时秒,默认 5")
+    p.add_argument("--config", help="Syncthing config.xml path / 路径(默认自动查找)")
+    p.add_argument("--no-color", action="store_true", help="Disable ANSI color / 禁用颜色")
+    p.add_argument("--lang", choices=["zh", "en"], default=None,
+                   help="UI language: en or zh (or set LAZYTHIN_LANG)")
+    p.add_argument("--once", action="store_true", help="Render one frame and exit / 渲染一帧后退出")
+    p.add_argument("--interval", type=float, default=2.0, help="TUI refresh interval in seconds (default 2)")
+    p.add_argument("--timeout", type=float, default=5.0, help="API timeout in seconds (default 5)")
     p.add_argument("--version", action="version", version=f"lazythin {__version__}")
     sub = p.add_subparsers(dest="cmd")
 
@@ -70,7 +73,13 @@ def _use_color(args) -> bool:
     return (not args.no_color) and sys.stdout.isatty() and _enable_vt_windows()
 
 
+def _lang(args) -> str:
+    val = getattr(args, "lang", None) or os.environ.get("LAZYTHIN_LANG", "")
+    return "en" if val.lower().startswith("en") else "zh"
+
+
 def _cmd_tui(args, client=None) -> int:
+    lang = _lang(args)
     if client is None:
         try:
             client = _make_client(args)
@@ -81,17 +90,24 @@ def _cmd_tui(args, client=None) -> int:
         try:
             snap = build_snapshot(client)
         except Exception as exc:
-            sys.stderr.write(f"获取状态失败:{exc}\n")
+            msg = f"Failed to fetch status: {exc}\n" if lang == "en" else f"获取状态失败:{exc}\n"
+            sys.stderr.write(msg)
             return 2
-        print(render_dashboard(snap, None, _use_color(args)))
+        print(render_dashboard(snap, None, _use_color(args), lang=lang))
         return 0
     if not sys.stdin.isatty():
-        sys.stderr.write("TUI 需要交互终端;脚本/管道场景请用 --once 或 status --json\n")
+        msg = (
+            "TUI requires an interactive terminal; use --once or status --json for scripts.\n"
+            if lang == "en"
+            else "TUI 需要交互终端;脚本/管道场景请用 --once 或 status --json\n"
+        )
+        sys.stderr.write(msg)
         return 2
-    return run_tui(client, interval=args.interval, use_color=_use_color(args))
+    return run_tui(client, interval=args.interval, use_color=_use_color(args), lang=lang)
 
 
 def _cmd_status(args, client=None) -> int:
+    lang = _lang(args)
     try:
         if client is None:
             client = _make_client(args)
@@ -102,17 +118,19 @@ def _cmd_status(args, client=None) -> int:
     if args.json:
         print(json.dumps(snapshot_json(snap), ensure_ascii=False, indent=2))
     else:
-        print(render_dashboard(snap, None, _use_color(args)))
+        print(render_dashboard(snap, None, _use_color(args), lang=lang))
         print()
-        print("提示:直接运行 lazythin 进入实时面板。")
+        print("Tip: run `lazythin` to launch the live TUI." if lang == "en" else "提示:直接运行 lazythin 进入实时面板。")
     return 0
 
 
-def _cmd_conflicts(args) -> int:
+def _cmd_conflicts(args, client=None) -> int:
+    lang = _lang(args)
+    en = lang == "en"
     if args.diff:
         p = Path(args.diff).expanduser()
         if not p.is_file():
-            sys.stderr.write(f"文件不存在:{p}\n")
+            sys.stderr.write(f"File not found: {p}\n" if en else f"文件不存在:{p}\n")
             return 2
         print(unified_diff(parse_conflict(p)))
         return 0
@@ -122,7 +140,7 @@ def _cmd_conflicts(args) -> int:
         for f in args.files:
             p = Path(f).expanduser()
             if not p.is_file():
-                sys.stderr.write(f"文件不存在:{p}\n")
+                sys.stderr.write(f"File not found: {p}\n" if en else f"文件不存在:{p}\n")
                 return 2
             conflicts.append(parse_conflict(p))
     else:
@@ -136,7 +154,12 @@ def _cmd_conflicts(args) -> int:
                 cfg = client.config()
                 roots = [Path(f.get("path")) for f in (cfg.get("folders") or []) if f.get("path")]
             except Exception as exc:
-                sys.stderr.write(f"拿不到文件夹列表:{exc};可用 --folder 直接指定目录\n")
+                msg = (
+                    f"Cannot read folder list: {exc}; pass --folder to scan a directory directly.\n"
+                    if en
+                    else f"拿不到文件夹列表:{exc};可用 --folder 直接指定目录\n"
+                )
+                sys.stderr.write(msg)
                 return 2
         conflicts = []
         for r in roots:
@@ -144,18 +167,23 @@ def _cmd_conflicts(args) -> int:
                 conflicts.extend(scan(r))
 
     if not conflicts:
-        print("没有发现冲突文件 ✅")
+        print("No conflict files found ✅" if en else "没有发现冲突文件 ✅")
         return 0
 
     for c in conflicts:
-        orig = c.original.name if c.original else "(无原文件)"
+        orig = c.original.name if c.original else ("(no original file)" if en else "(无原文件)")
         info = [x for x in (c.stamp, c.device) if x] or ["?"]
         print(f"⚠ {c.path}")
-        print(f"   原文件 {orig} · {' · '.join(info)} · {fmt_bytes(c.size)}")
+        label = "original" if en else "原文件"
+        print(f"   {label} {orig} · {' · '.join(info)} · {fmt_bytes(c.size)}")
 
     if not args.resolve:
-        print(f"\n共 {len(conflicts)} 个冲突。解决:--resolve keep-orig|keep-conflict|keep-both"
-              "(默认只打印计划,加 --yes 执行)")
+        if en:
+            print(f"\nFound {len(conflicts)} conflict(s). Resolve with: --resolve keep-orig|keep-conflict|keep-both "
+                  "(dry-run by default; pass --yes to apply)")
+        else:
+            print(f"\n共 {len(conflicts)} 个冲突。解决:--resolve keep-orig|keep-conflict|keep-both"
+                  "(默认只打印计划,加 --yes 执行)")
         return 1
 
     backup = not args.no_backup
@@ -163,18 +191,21 @@ def _cmd_conflicts(args) -> int:
     for c in conflicts:
         if not args.yes:
             for act in plan_resolve(c, args.resolve, backup):
-                print(f"  [计划] {act}")
+                tag = "[plan]" if en else "[计划]"
+                print(f"  {tag} {act}")
         else:
             try:
                 for act in resolve(c, args.resolve, backup):
-                    print(f"  [完成] {act}")
+                    tag = "[done]" if en else "[完成]"
+                    print(f"  {tag} {act}")
                 done += 1
             except OSError as exc:
-                print(f"  [失败] {c.path.name}:{exc}")
+                tag = "[failed]" if en else "[失败]"
+                print(f"  {tag} {c.path.name}:{exc}")
     if args.yes:
-        print(f"\n已处理 {done}/{len(conflicts)} 个。")
+        print(f"\nResolved {done}/{len(conflicts)} conflict(s)." if en else f"\n已处理 {done}/{len(conflicts)} 个。")
         return 0 if done == len(conflicts) else 1
-    print("\n以上为执行计划,确认无误后加 --yes 执行。")
+    print("\nDry-run plan above. Pass --yes to apply." if en else "\n以上为执行计划,确认无误后加 --yes 执行。")
     return 1
 
 

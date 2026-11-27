@@ -16,12 +16,18 @@ classifiers = [
     "Environment :: Console",
     "Intended Audience :: End Users/Desktop",
     "Natural Language :: Chinese (Simplified)",
+    "Natural Language :: English",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
     "Topic :: System :: Archiving :: Mirroring",
     "Topic :: Utilities",
 ]
+
+[project.urls]
+Homepage = "https://github.com/heht24-cyber/lazythin"
+Repository = "https://github.com/heht24-cyber/lazythin"
+Issues = "https://github.com/heht24-cyber/lazythin/issues"
 
 [project.scripts]
 lazythin = "lazythin.cli:main"

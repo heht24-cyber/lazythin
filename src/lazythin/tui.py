@@ -103,9 +103,69 @@ def _rate(prev: Snapshot | None, cur: Snapshot, dev) -> str:
     return f"↓ {fmt_bytes(in_rate)}/s ↑ {fmt_bytes(out_rate)}/s"
 
 
+_I18N = {
+    "zh": {
+        "local": "本机",
+        "uptime": "已运行",
+        "sys_err": "系统错误 {n} 条 {msg}",
+        "folders": "文件夹 {n}",
+        "no_folders": "(没有配置共享文件夹)",
+        "paused": "已暂停",
+        "unknown": "未知",
+        "need": "需",
+        "items": "项",
+        "unknown_path": "(路径未知)",
+        "errors": "错误",
+        "devices": "设备 {n}",
+        "no_devices": "(没有其他设备)",
+        "offline": "离线",
+        "conflicts_hdr": "冲突文件 {n} 个",
+        "scan_scope": "扫描范围:{scope}",
+        "no_conflicts": "✅ 没有冲突文件,干净",
+        "no_orig": "(无原文件)",
+        "orig": "原文件",
+        "diff_hint": "差异与解决用命令行:lazythin conflicts --diff <文件>",
+        "back_hint": "c / 回车 返回状态面板 · q 退出",
+        "conn_err": "连不上 Syncthing:{error}",
+        "retry_hint": "r 重试 · q 退出",
+    },
+    "en": {
+        "local": "local",
+        "uptime": "uptime",
+        "sys_err": "{n} system error(s) {msg}",
+        "folders": "Folders ({n})",
+        "no_folders": "(no shared folders configured)",
+        "paused": "paused",
+        "unknown": "unknown",
+        "need": "need",
+        "items": "items",
+        "unknown_path": "(unknown path)",
+        "errors": "errors",
+        "devices": "Devices ({n})",
+        "no_devices": "(no other devices)",
+        "offline": "offline",
+        "conflicts_hdr": "Conflict Files ({n})",
+        "scan_scope": "Scope: {scope}",
+        "no_conflicts": "✅ No conflict files found",
+        "no_orig": "(no original file)",
+        "orig": "original",
+        "diff_hint": "Inspect/resolve via CLI: lazythin conflicts --diff <file>",
+        "back_hint": "c / Enter: dashboard · q: quit",
+        "conn_err": "Cannot reach Syncthing: {error}",
+        "retry_hint": "r: retry · q: quit",
+    },
+}
+
+
+def _tr(lang: str) -> dict[str, str]:
+    return _I18N["en"] if lang == "en" else _I18N["zh"]
+
+
 def render_dashboard(s: Snapshot, prev: Snapshot | None = None,
-                     use_color: bool = True, spin: str = "-") -> str:
+                     use_color: bool = True, spin: str = "-",
+                     lang: str = "zh") -> str:
     C = _C(use_color)
+    t = _tr(lang)
     info = s.system
     head = [C.bold("lazythin")]
     if info.version:
@@ -114,8 +174,8 @@ def render_dashboard(s: Snapshot, prev: Snapshot | None = None,
             ver += f" \"{info.codename}\""
         head.append(ver)
     if info.my_id:
-        head.append(f"本机 {info.my_id[:7]}…")
-    head.append(f"已运行 {fmt_uptime(info.uptime)}")
+        head.append(f"{t['local']} {info.my_id[:7]}…")
+    head.append(f"{t['uptime']} {fmt_uptime(info.uptime)}")
     if info.cpu_percent is not None:
         head.append(f"CPU {info.cpu_percent:.1f}%")
 
@@ -123,41 +183,41 @@ def render_dashboard(s: Snapshot, prev: Snapshot | None = None,
     if info.errors:
         last = info.errors[0]
         msg = str(last.get("message", ""))[:60] if isinstance(last, dict) else ""
-        lines.append(C.red(f"  ✖ 系统错误 {len(info.errors)} 条 {msg}"))
+        lines.append(C.red("  ✖ " + t["sys_err"].format(n=len(info.errors), msg=msg)))
     lines.append("  " + "─" * 58)
 
-    lines.append(C.bold(f"  文件夹 {len(s.folders)}"))
+    lines.append(C.bold("  " + t["folders"].format(n=len(s.folders))))
     if not s.folders:
-        lines.append(C.dim("  (没有配置共享文件夹)"))
+        lines.append(C.dim("  " + t["no_folders"]))
     for f in s.folders:
         mark, color = _folder_mark(f, spin)
         name = (f.label or f.id or "?")[:16]
-        state = "已暂停" if f.paused else (f.state or "未知")
+        state = t["paused"] if f.paused else (f.state or t["unknown"])
         name_col = f"{name:<16}"
         state_col = f"{state[:10]:<10}"
         if f.need_bytes > 0 or f.state == "syncing":
             row = (f"  {mark} {C(color, name_col)} {C(color, state_col)} "
-                   f"{bar(f.progress)} {f.progress * 100:5.1f}%  需 {fmt_bytes(f.need_bytes)}")
+                   f"{bar(f.progress)} {f.progress * 100:5.1f}%  {t['need']} {fmt_bytes(f.need_bytes)}")
         else:
             row = (f"  {mark} {C(color, name_col)} {C(color, state_col)} "
                    f"{fmt_bytes(f.insync_bytes)} / {fmt_bytes(f.global_bytes)}"
-                   f"  {f.global_files} 项")
+                   f"  {f.global_files} {t['items']}")
         lines.append(row)
-        sub = f.path or "(路径未知)"
+        sub = f.path or t["unknown_path"]
         if f.ftype:
             sub += f" · {f.ftype}"
         if f.db_errors:
-            sub += C.red(f" · 错误 {f.db_errors}")
+            sub += C.red(f" · {t['errors']} {f.db_errors}")
         lines.append(C.dim(f"     {sub}"))
 
     lines.append("")
-    lines.append(C.bold(f"  设备 {len(s.devices)}"))
+    lines.append(C.bold("  " + t["devices"].format(n=len(s.devices))))
     if not s.devices:
-        lines.append(C.dim("  (没有其他设备)"))
+        lines.append(C.dim("  " + t["no_devices"]))
     for d in s.devices:
         name = (d.name or d.id[:7] or "?")[:16]
         if d.paused:
-            lines.append(f"  ‖ {C('dim', f'{name:<16}')} 已暂停")
+            lines.append(f"  ‖ {C('dim', f'{name:<16}')} {t['paused']}")
         elif d.connected:
             extra = _short_addr(d.address)
             if d.client_version:
@@ -167,32 +227,33 @@ def render_dashboard(s: Snapshot, prev: Snapshot | None = None,
                 extra += f"  {rate}"
             lines.append(f"  ● {C('green', f'{name:<16}')} {extra}")
         else:
-            lines.append(f"  ○ {C('dim', f'{name:<16}')} 离线")
+            lines.append(f"  ○ {C('dim', f'{name:<16}')} {t['offline']}")
 
     lines.append("  " + "─" * 58)
     return "\n".join(lines)
 
 
 def render_conflicts(conflicts: list[Conflict], roots: list[Path],
-                     use_color: bool = True) -> str:
+                     use_color: bool = True, lang: str = "zh") -> str:
     C = _C(use_color)
-    lines = [C.bold(f"  冲突文件 {len(conflicts)} 个")]
+    t = _tr(lang)
+    lines = [C.bold("  " + t["conflicts_hdr"].format(n=len(conflicts)))]
     if roots:
         scope = " ; ".join(str(r) for r in roots)
-        lines.append(C.dim(f"  扫描范围:{scope}"))
+        lines.append(C.dim("  " + t["scan_scope"].format(scope=scope)))
     lines.append("")
     if not conflicts:
-        lines.append(C.green("  ✅ 没有冲突文件,干净"))
+        lines.append(C.green("  " + t["no_conflicts"]))
     for c in conflicts:
-        orig = c.original.name if c.original else "(无原文件)"
+        orig = c.original.name if c.original else t["no_orig"]
         info = [x for x in (c.stamp, c.device) if x]
         info.append(fmt_bytes(c.size))
         lines.append(f"  ⚠ {C('yellow', c.path.name)}")
-        lines.append(C.dim(f"     原文件 {orig} · {' · '.join(info)}"))
+        lines.append(C.dim(f"     {t['orig']} {orig} · {' · '.join(info)}"))
     lines.append("")
-    lines.append(C.dim("  差异与解决用命令行:lazythin conflicts --diff <文件>"))
+    lines.append(C.dim("  " + t["diff_hint"]))
     lines.append(C.dim("                 lazythin conflicts --resolve keep-orig|keep-conflict|keep-both --yes"))
-    lines.append("  c / 回车 返回状态面板 · q 退出")
+    lines.append("  " + t["back_hint"])
     return "\n".join(lines)
 
 
@@ -269,13 +330,15 @@ def _wait_key(seconds: float) -> str | None:
     return ch.lower() if ch.isalpha() else ch
 
 
-def run_tui(client, interval: float = 2.0, use_color: bool = True) -> int:
+def run_tui(client, interval: float = 2.0, use_color: bool = True,
+            lang: str = "zh") -> int:
     prev: Snapshot | None = None
     show_conflicts = False
     conflicts: list[Conflict] = []
     roots: list[Path] = []
     spin_i = 0
     C = _C(use_color)
+    t = _tr(lang)
 
     with _TermGuard(use_color):
         while True:
@@ -290,12 +353,12 @@ def run_tui(client, interval: float = 2.0, use_color: bool = True) -> int:
 
             clear = "\x1b[2J\x1b[H" if use_color else ""
             if error is not None:
-                body = ["  " + C.red(f"连不上 Syncthing:{error}"),
-                        "  r 重试 · q 退出"]
+                body = ["  " + C.red(t["conn_err"].format(error=error)),
+                        "  " + t["retry_hint"]]
             elif show_conflicts:
-                body = render_conflicts(conflicts, roots, use_color).splitlines()
+                body = render_conflicts(conflicts, roots, use_color, lang=lang).splitlines()
             else:
-                body = render_dashboard(snap, prev, use_color, SPIN[spin_i % 4]).splitlines()
+                body = render_dashboard(snap, prev, use_color, SPIN[spin_i % 4], lang=lang).splitlines()
                 prev = snap
             sys.stdout.write(clear + "\n".join(body) + "\n")
             sys.stdout.flush()

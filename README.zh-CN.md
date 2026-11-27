@@ -1,12 +1,14 @@
 # lazythin
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-black.svg)](LICENSE)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](pyproject.toml)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](pyproject.toml)
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-0_(stdlib_only)-2da44e.svg)](pyproject.toml)
 
 [English](README.md) | 简体中文
 
 > **终端里的 Syncthing:状态一眼可见,冲突一键收拾。**
+
+![lazythin 终端预览](assets/demo.svg)
 
 *lazythin = lazy(lazygit 那个 lazy)+ syncthing。*给全球几十万 Syncthing 用户一个不用开浏览器的日常入口:一个 TUI 实时面板,加一套安全的冲突文件处理命令。**零第三方依赖,纯 Python 标准库。**
 

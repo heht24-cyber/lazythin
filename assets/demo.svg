@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="310" viewBox="0 0 820 310" role="img" aria-label="lazythin terminal dashboard preview">
+  <rect width="820" height="310" rx="12" fill="#0d1117" stroke="#30363d" stroke-width="1"/>
+  <rect width="820" height="36" rx="12" fill="#161b22"/>
+  <rect y="24" width="820" height="12" fill="#161b22"/>
+  <circle cx="20" cy="18" r="6" fill="#ff5f56"/>
+  <circle cx="40" cy="18" r="6" fill="#ffbd2e"/>
+  <circle cx="60" cy="18" r="6" fill="#27c93f"/>
+  <text x="410" y="23" text-anchor="middle" fill="#8b949e" font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="12">lazythin --lang en --once</text>
+  <g font-family="ui-monospace,SFMono-Regular,Menlo,Consolas,monospace" font-size="13.5">
+    <text x="24" y="64" fill="#8b949e">$ <tspan fill="#e6edf3">lazythin --lang en --once</tspan></text>
+    <text x="24" y="92" fill="#e6edf3" font-weight="bold">  lazythin<tspan fill="#8b949e" font-weight="normal">  ·  </tspan><tspan fill="#e6edf3" font-weight="normal">syncthing v2.1.7 "Hafnium Hornet"</tspan><tspan fill="#8b949e" font-weight="normal">  ·  local B3B6IYX…  ·  uptime 10h 11m  ·  CPU 0.0%</tspan></text>
+    <text x="24" y="114" fill="#30363d">  ──────────────────────────────────────────────────────────────────────────────</text>
+    <text x="24" y="138" fill="#e6edf3" font-weight="bold">  Folders (1)</text>
+    <text x="24" y="162" fill="#3fb950">  ● Shared           idle       <tspan fill="#58a6ff">▓▓▓▓▓▓▓▓▓▓</tspan><tspan fill="#e6edf3"> 100.0%  </tspan><tspan fill="#d29922">need 21.7 KiB</tspan></text>
+    <text x="24" y="184" fill="#8b949e">     D:\Share · sendreceive · <tspan fill="#f85149">errors 4</tspan></text>
+    <text x="24" y="216" fill="#e6edf3" font-weight="bold">  Devices (2)</text>
+    <text x="24" y="240" fill="#3fb950">  ● NixSurface       <tspan fill="#e6edf3">[fd7a:115c:a1e0::c836:3f27]:35774  v2.1.3  ↓ 12.3 MiB/s ↑ 1.1 MiB/s</tspan></text>
+    <text x="24" y="262" fill="#8b949e">  ○ WorkLaptop       offline</text>
+    <text x="24" y="286" fill="#30363d">  ──────────────────────────────────────────────────────────────────────────────</text>
+  </g>
+</svg>

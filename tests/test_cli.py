@@ -76,6 +76,29 @@ class TestCli(unittest.TestCase):
         self.assertEqual(code, 2)
         self.assertIn("交互终端", err.getvalue())
 
+    def test_english_dashboard(self):
+        args = build_parser().parse_args(["--once", "--lang", "en"])
+        code, out = self._run(lambda a, c: _tui(a, c), args, client=FakeClient())
+        self.assertEqual(code, 0)
+        self.assertIn("Folders (1)", out)
+        self.assertIn("Devices (2)", out)
+        self.assertIn("uptime 10h 2m", out)
+        self.assertIn("need 21.7 KiB", out)
+        self.assertIn("offline", out)
+
+    def test_english_conflicts(self):
+        with tempfile.TemporaryDirectory() as td:
+            p = Path(td)
+            (p / "a.txt").write_text("old", encoding="utf-8")
+            (p / "a.sync-conflict-20260101-101010-ABC1234.txt").write_text("new", encoding="utf-8")
+            buf = io.StringIO()
+            with contextlib.redirect_stdout(buf):
+                code = main(["--lang", "en", "conflicts", "--folder", td, "--resolve", "keep-orig"])
+            self.assertEqual(code, 1)
+            self.assertIn("original a.txt", buf.getvalue())
+            self.assertIn("[plan]", buf.getvalue())
+            self.assertIn("Dry-run plan above", buf.getvalue())
+
 
 class TestConflictsCli(unittest.TestCase):
     def setUp(self):

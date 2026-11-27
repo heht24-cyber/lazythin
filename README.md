@@ -1,12 +1,14 @@
 # lazythin
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-black.svg)](LICENSE)
-[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](pyproject.toml)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](pyproject.toml)
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-0_(stdlib_only)-2da44e.svg)](pyproject.toml)
 
 English | [简体中文](README.zh-CN.md)
 
 > **Syncthing in your terminal: live status at a glance, `.sync-conflict` files cleaned up in one command.**
+
+![lazythin terminal preview](assets/demo.svg)
 
 *`lazythin` = `lazy` (like lazygit) + `syncthing`.* A lightweight daily driver for Syncthing users who don't want to open a browser just to check sync progress or untangle conflict files. **Zero third-party dependencies — pure Python standard library.**
 
@@ -38,10 +40,10 @@ $ uvx --from git+https://github.com/heht24-cyber/lazythin.git lazythin
 $ pip install git+https://github.com/heht24-cyber/lazythin.git
 ```
 
-Then just run:
+Then just run (pass `--lang en` or set `LAZYTHIN_LANG=en` for English UI):
 
 ```console
-$ lazythin
+$ lazythin --lang en
 ```
 
 `lazythin` automatically locates your local Syncthing `config.xml`, reads the GUI address and API key, and connects immediately.
@@ -63,7 +65,7 @@ $ lazythin --once
   ──────────────────────────────────────────────────────────
 ```
 
-*(Actively syncing folders display a progress bar and live transfer rate, e.g. `↓ 12.3 MiB/s ↑ 1.1 MiB/s`, computed across refresh ticks. Note: current TUI labels are in Chinese; English UI localization is welcome via PR.)*
+*(Actively syncing folders display a progress bar and live transfer rate, e.g. `↓ 12.3 MiB/s ↑ 1.1 MiB/s`, computed across refresh ticks. Supports both English (`--lang en` / `LAZYTHIN_LANG=en`) and Chinese (`--lang zh`) UI.)*
 
 ## Resolve Conflict Files in 3 Steps
 
